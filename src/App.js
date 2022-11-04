@@ -1,125 +1,135 @@
-import { useEffect, useState } from "react";
-import "./App.css";
+import {useState} from "react";
 import TaskList from "./components/TaskList";
-import { Routes, Route } from "react-router";
-import { Link } from "react-router-dom";
-// import DoneTasks from "./components/DoneTasks";
-// import PendingTasks from "./components/PendingTasks";
-import TaskPage from "./components/TaskPage";
-import axios from "axios";
-import { v4 as uuidv4 } from "uuid";
+import AllTasks from "./components/AllTasks";
+import {Routes, Route} from "react-router";
+import {Link} from "react-router-dom";
+import {v4 as uuidv4} from "uuid";
 
 const App = () => {
-  const [title, setTitle] = useState("Task Manager");
-  const [newTodo, addNewTodo] = useState("");
+	const [title, setTitle] = useState("Task Manager");
 
-  // const initialTasks = [
-  //   {
-  //     id: 1,
-  //     name: "Fix Bed",
-  //     done: false,
-  //   },
-  //   {
-  //     id: 2,
-  //     name: "Walk dog",
-  //     done: true,
-  //   },
-  //   {
-  //     id: 3,
-  //     name: "Clean bathroom",
-  //     done: false,
-  //   },
-  //   {
-  //     id: 4,
-  //     name: "Clean PC",
-  //     done: false,
-  //   },
-  // ];
+	const [tasks, setTasks] = useState([
+		{
+			id: uuidv4(),
+			name: "Fix Bed",
+			done: false,
+		},
+		{
+			id: uuidv4(),
+			name: "Walk dog",
+			done: false,
+		},
+		{
+			id: uuidv4(),
+			name: "Clean bathroom",
+			done: false,
+		},
+		{
+			id: uuidv4(),
+			name: "Clean PC",
+			done: false,
+		},
+	]);
 
-  const [tasks, setTasks] = useState([]);
+	// for the done button
+	const completeTaskHandler = (id) => {
+		let newState = [...tasks];
 
-  useEffect(() => {
-    axios.get("http://localhost:8080/tasks").then((response) => {
-      console.log(response);
-      setTasks(response.data);
-    });
-  }, []);
+		//look for the index of the given ID
+		const index = newState.findIndex((task) => task.id === id);
 
-  // //filters all task done:true
-  // const doneTasks = tasks.filter((task) => task.done);
-  // //filters all task done:false
-  // const notDone = tasks.filter((task) => !task.done);
+		//change the done from false to true
+		newState[index].done = true;
 
-  const completeTaskHandler = (id) => {
-    let newState = [...tasks];
-    console.log("hey this is the start state", tasks);
-    //look for the index of the given ID
-    const index = newState.findIndex((task) => task.id === id);
-    console.log("hey this is the index", index);
+		//set the State to the new value
+		setTasks(newState);
+	};
 
-    //change the done from false to true
-    newState[index].done = true;
-    console.log("hey this is the end state", newState);
+	// task name
+	const [name, setName] = useState("");
 
-    //set the State to the new value
-    setTasks(newState);
-  };
+	const onChange = (e) => {
+		setName(e.target.value);
+	};
 
-  // const changeMessage = (e) => {
-  //   setMessage(e.target.value);
-  // };
+	const onSubmit = (e) => {
+		e.preventDefault();
 
-  const addTodo = () => {
-    const newTasks = {
-      id: uuidv4(),
-      name: newTodo,
-      done: false,
-    };
-    setTasks([...tasks, newTasks]);
-  };
+		const targetTask = tasks.filter((task) => task.name.toLowerCase().trim() === name.toLowerCase().trim());
 
-  return (
-    <div className="App">
-      <div>
-        <h1>{title}</h1>
-        <input
-          type="text"
-          value={newTodo}
-          onChange={(e) => addNewTodo(e.target.value)}
-        />
-        <button onClick={addTodo}> Click me! </button>
-        <br />
+		if (targetTask.length <= 0 && name.trim() !== "") {
+			const updatedTasks = [...tasks, newTask];
+			setTasks(updatedTasks);
+			addTask({name});
+		} else if (name.trim() == "") {
+			alert("Please add a task.");
+		} else {
+			alert("It's already on your list.");
+		}
+		setName("");
+	};
 
-        <nav>
-          <Link to="">All Tasks</Link> |<Link to="donE"> Done Tasks</Link> |
-          <Link to="pendINg"> Pending Tasks</Link>
-        </nav>
-      </div>
+	//Add a Task
+	const [newTask, setNewTask] = useState(false);
 
-      {/* Routes - Done Task, Pending Task, All Task */}
-      <Routes>
-        <Route path="/" element={<TaskList tasks={tasks} />} />
-        {/* <Route path="/done" element={<DoneTasks tasks={doneTasks} />} />
-        <Route
-          path="/pending"
-          element={
-            <PendingTasks tasks={notDone} completeTask={completeTaskHandler} />
-          }
-        /> */}
+	const addTask = (task) => {
+		const newTasks = {
+			id: uuidv4(),
+			done: false,
+			...task,
+		};
 
-        <Route
-          path=":status"
-          element={
-            <TaskPage tasks={tasks} completeTask={completeTaskHandler} />
-          }
-        />
-      </Routes>
+		setTasks([...tasks, newTasks]);
+	};
 
-      {/* <TaskList tasks={notDone} completeTask={completeTaskHandler} />
-      <TaskList tasks={doneTasks} /> */}
-      {/* <p>{message}</p> */}
-    </div>
-  );
+	// delete task
+	const deleteTask = (id) => {
+		const newTasks = tasks.filter((task) => task.id !== id);
+		setTasks(newTasks);
+	};
+
+	const doneTasks = tasks.filter((tasks) => tasks.done);
+	const notDone = tasks.filter((tasks) => !tasks.done);
+
+	return (
+		<div className="App">
+			<div>
+				<h1 className="App-Title">{title}</h1>
+				<nav className="Header">
+					<Link to="All">All Tasks</Link> |<Link to="Done">Done Tasks</Link> |<Link to="Pending">Pending Tasks </Link>
+				</nav>
+				<br />
+				<form className="Add-Todo" onSubmit={onSubmit}>
+					<input
+						type="text"
+						placeholder="Add a task"
+						value={name}
+						name="text"
+						className="Input-Todo"
+						onChange={onChange}
+					/>
+					<button className="Todo-Btn">Add</button>
+				</form>
+			</div>
+
+			{/* Routes - Done Task, Pending Task, All Task */}
+			<Routes>
+				<Route
+					path="/"
+					element={
+						<>
+							<AllTasks tasks={notDone} completeTask={completeTaskHandler} deleteTask={deleteTask} />{" "}
+							<AllTasks tasks={doneTasks} deleteTask={deleteTask} />
+						</>
+					}
+				/>
+				<Route
+					path=":status"
+					element={<TaskList tasks={tasks} completeTask={completeTaskHandler} deleteTask={deleteTask} />}
+				/>
+			</Routes>
+		</div>
+	);
 };
 
 export default App;

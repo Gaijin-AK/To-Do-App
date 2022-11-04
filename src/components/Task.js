@@ -1,28 +1,26 @@
-import React, { Component } from "react";
+const Task = (props) => {
 
-class Task extends Component {
-  componentToShow() {
-    if (this.props.status) {
-      return <p>Yay you are done</p>;
-    } else if (!this.props.status) {
-      return (
-        <button onClick={() => this.props.completeTask(this.props.id)}>
-          I am done
-        </button>
-      );
-    } else {
-      return <div></div>;
-    }
-  }
+	const isDone = props.status;
 
-  render() {
-    return (
-      <div className="Task">
-        <h2>{this.props.name}</h2>
-        <p>Done: {this.props.status.toString()}</p>
-        {this.componentToShow()}
-      </div>
-    );
-  }
-}
+	return (
+		<>
+			<div className="Task">
+				<h2>{props.name}</h2>
+
+				{isDone ? (
+					<p className="Done-Status">Yay you are done! 🥳</p>
+				) : (
+					<button className="Done-Btn" onClick={() => props.completeTask(props.id)}>
+						I am done
+					</button>
+				)}
+
+				<button className="Delete-Btn" onClick={() => props.deleteTask(props.id)}>
+					Delete
+				</button>
+			</div>
+		</>
+	);
+};
+
 export default Task;
